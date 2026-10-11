@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>数据分析</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <script src="/vision/static/echarts.min.js"></script>
+    <style>
+        body {
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+
+        .chart-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-left: 4px solid #009688;
+            padding-left: 12px;
+        }
+
+        .chart-container {
+            height: 350px;
+        }
+
+        .patient-selector {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="patient-selector">
+        <div class="layui-row">
+            <div class="layui-col-md4">
+                <select id="patientSelect" lay-search>
+                    <option value="">请选择患者查看个人趋势</option>
+                </select>
+            </div>
+            <div class="layui-col-md2">
+                <button class="layui-btn layui-btn-primary" id="viewBtn">
+                    <i class="layui-icon layui-icon-search"></i> 查看
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="personalCharts" style="display:none;">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md6">
+                <div class="chart-card">
+                    <div class="chart-title">近视度数变化趋势</div>
+                    <div id="sphereChart" class="chart-container"></div>
+                </div>
+            </div>
+            <div class="layui-col-md6">
+                <div class="chart-card">
+                    <div class="chart-title">矫正视力变化趋势</div>
+                    <div id="visionChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="chart-card">
+                <div class="chart-title">整体近视趋势（全院）</div>
+                <div id="myopiaTrendChart" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md6">
+            <div class="chart-card">
+                <div class="chart-title">患者年龄分布</div>
+                <div id="ageChart" class="chart-container" style="height:300px;"></div>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="chart-card">
+                <div class="chart-title">近视程度分布</div>
+                <div id="degreeChart" class="chart-container" style="height:300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        // 所有代码放在 layui.use 回调中，确保 jQuery 可用
+        layui.use(['form', 'jquery', 'layer'], function () {
+            var form = layui.form;
+            var $ = layui.$;
+            var layer = layui.layer;
+
+            console.log('数据分析页面加载完成');
+
+            // 加载患者列表
+            $.ajax({
+                url: '/vision/api/patient/search',
+                type: 'GET',
+                success: function (res) {
+                    if (res.code === 0 && res.data) {
+                        var html = '<option value="">请选择患者</option>';
+                        for (var i = 0; i < res.data.length; i++) {
+                            var p = res.data[i];
+                            html += '<option value="' + p.id + '">' + p.name + ' (' + (p.phone || '无电话') + ')</option>';
+                        }
+                        $('#patientSelect').html(html);
+                        form.render('select');
+                    }
+                },
+                error: function () {
+                    console.error('加载患者列表失败');
+                }
+            });
+
+            // 加载全院近视趋势
+            loadMyopiaTrend($);
+
+            // 加载年龄分布
+            loadAgeDistribution($);
+
+            // 加载近视程度分布
+            loadDegreeDistribution($);
+
+            // 查看按钮点击事件
+            $('#viewBtn').on('click', function () {
+                var patientId = $('#patientSelect').val();
+                if (!patientId) {
+                    layer.msg('请选择患者');
+                    return;
+                }
+
+                $('#personalCharts').show();
+
+                $.ajax({
+                    url: '/vision/api/optometry/analysis/' + patientId,
+                    type: 'GET',
+                    success: function (res) {
+                        if (res.code === 0) {
+                            var data = res.data;
+
+                            // 度数趋势
+                            var sphereChart = echarts.init(document.getElementById('sphereChart'));
+                            sphereChart.setOption({
+                                tooltip: { trigger: 'axis' },
+                                legend: { data: ['右眼度数', '左眼度数'] },
+                                xAxis: { type: 'category', data: data.dates || [] },
+                                yAxis: { type: 'value', name: '度数(D)' },
+                                series: [
+                                    { name: '右眼度数', type: 'line', data: data.sphereOd, color: '#009688', smooth: true },
+                                    { name: '左眼度数', type: 'line', data: data.sphereOs, color: '#ff9800', smooth: true }
+                                ]
+                            });
+
+                            // 视力趋势
+                            var visionChart = echarts.init(document.getElementById('visionChart'));
+                            visionChart.setOption({
+                                tooltip: { trigger: 'axis' },
+                                legend: { data: ['右眼矫正视力', '左眼矫正视力'] },
+                                xAxis: { type: 'category', data: data.dates || [] },
+                                yAxis: { type: 'value', name: '视力', min: 0, max: 1.5 },
+                                series: [
+                                    { name: '右眼矫正视力', type: 'line', data: data.visionOd, color: '#009688', smooth: true },
+                                    { name: '左眼矫正视力', type: 'line', data: data.visionOs, color: '#ff9800', smooth: true }
+                                ]
+                            });
+                        }
+                    },
+                    error: function () {
+                        layer.msg('加载数据失败');
+                    }
+                });
+            });
+        });
+
+        // 定义函数，接收 $ 作为参数
+        function loadMyopiaTrend($) {
+            $.ajax({
+                url: '/vision/api/analysis/myopia/trend',
+                type: 'GET',
+                success: function (res) {
+                    if (res.code === 0) {
+                        var chart = echarts.init(document.getElementById('myopiaTrendChart'));
+                        chart.setOption({
+                            tooltip: { trigger: 'axis' },
+                            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                            xAxis: { type: 'category', data: res.data.months || [] },
+                            yAxis: { type: 'value', name: '平均度数(D)' },
+                            series: [{
+                                data: res.data.values || [],
+                                type: 'line',
+                                smooth: true,
+                                lineStyle: { color: '#ff5722', width: 3 },
+                                areaStyle: { color: 'rgba(255,87,34,0.1)' }
+                            }]
+                        });
+                    }
+                }
+            });
+        }
+
+        function loadAgeDistribution($) {
+            $.ajax({
+                url: '/vision/api/analysis/age/distribution',
+                type: 'GET',
+                success: function (res) {
+                    if (res.code === 0) {
+                        var chart = echarts.init(document.getElementById('ageChart'));
+                        var data = [];
+                        for (var i = 0; i < res.data.groups.length; i++) {
+                            data.push({ name: res.data.groups[i], value: res.data.counts[i] });
+                        }
+                        chart.setOption({
+                            tooltip: { trigger: 'item' },
+                            legend: { orient: 'vertical', left: 'left', top: 'center' },
+                            series: [{
+                                type: 'pie',
+                                radius: ['40%', '65%'],
+                                data: data
+                            }]
+                        });
+                    }
+                }
+            });
+        }
+
+        function loadDegreeDistribution($) {
+            $.ajax({
+                url: '/vision/api/analysis/myopia/degree',
+                type: 'GET',
+                success: function (res) {
+                    if (res.code === 0) {
+                        var chart = echarts.init(document.getElementById('degreeChart'));
+                        var data = [];
+                        for (var i = 0; i < res.data.groups.length; i++) {
+                            data.push({ name: res.data.groups[i], value: res.data.counts[i] });
+                        }
+                        chart.setOption({
+                            tooltip: { trigger: 'item' },
+                            legend: { orient: 'vertical', left: 'left', top: 'center' },
+                            series: [{
+                                type: 'pie',
+                                radius: ['40%', '65%'],
+                                data: data
+                            }]
+                        });
+                    }
+                }
+            });
+        }
+        /*]]>*/
+    </script>
+</body>
+
+</html>

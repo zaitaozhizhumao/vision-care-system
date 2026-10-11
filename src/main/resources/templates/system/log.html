@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>操作日志</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+
+        .table-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="table-box">
+        <table id="logTable" lay-filter="logTable"></table>
+    </div>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        layui.use(['table'], function () {
+            var table = layui.table;
+
+            table.render({
+                elem: '#logTable',
+                url: '/vision/api/system/log/page',
+                page: true,
+                cols: [[
+                    { type: 'numbers', title: '序号', width: 60 },
+                    { field: 'username', title: '操作用户', width: 120 },
+                    { field: 'operation', title: '操作', width: 120 },
+                    { field: 'method', title: '请求方法', width: 200 },
+                    { field: 'ip', title: 'IP地址', width: 140 },
+                    { field: 'createTime', title: '操作时间', width: 180 }
+                ]],
+                parseData: function (res) {
+                    return { code: res.code, msg: res.msg, count: res.count, data: res.data };
+                }
+            });
+        });
+        /*]]>*/
+    </script>
+</body>
+
+</html>

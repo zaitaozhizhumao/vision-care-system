@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>编辑处方</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .form-container {
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #009688;
+            color: #333;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .info-bar {
+            background: #f0f7f6;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #009688;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <form class="layui-form" lay-filter="prescriptionForm">
+            <input type="hidden" name="id" id="prescriptionId">
+            <input type="hidden" name="patientId" id="patientIdValue">
+            <input type="hidden" name="optometryId" id="optometryIdValue">
+            <input type="hidden" name="doctorId" id="doctorId">
+
+            <!-- 信息栏 -->
+            <div class="info-bar">
+                <strong>编辑处方</strong> |
+                处方编号：<span id="displayPrescriptionNo">-</span> |
+                患者：<span id="displayPatientName">-</span> |
+                状态：<span style="color:#FFB800;">草稿</span>
+            </div>
+
+            <!-- 镜架信息 -->
+            <div class="section-title"><i class="layui-icon layui-icon-star"></i> 镜架信息</div>
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">镜架类型</label>
+                        <div class="layui-input-block">
+                            <select name="frameType">
+                                <option value="">请选择</option>
+                                <option value="全框">全框</option>
+                                <option value="半框">半框</option>
+                                <option value="无框">无框</option>
+                                <option value="钛架">钛架</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">镜架品牌</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="frameBrand" placeholder="如：RayBan" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">镜架型号</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="frameModel" placeholder="如：RB2140" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 镜片信息 -->
+            <div class="section-title"><i class="layui-icon layui-icon-component"></i> 镜片信息</div>
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">镜片类型</label>
+                        <div class="layui-input-block">
+                            <select name="lensType">
+                                <option value="">请选择</option>
+                                <option value="单光">单光</option>
+                                <option value="渐进多焦点">渐进多焦点</option>
+                                <option value="抗疲劳">抗疲劳</option>
+                                <option value="防蓝光">防蓝光</option>
+                                <option value="变色片">变色片</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">镜片材质</label>
+                        <div class="layui-input-block">
+                            <select name="lensMaterial">
+                                <option value="">请选择</option>
+                                <option value="树脂">树脂</option>
+                                <option value="PC片">PC片</option>
+                                <option value="玻璃">玻璃</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">折射率</label>
+                        <div class="layui-input-block">
+                            <select name="lensIndex">
+                                <option value="">请选择</option>
+                                <option value="1.56">1.56</option>
+                                <option value="1.60">1.60</option>
+                                <option value="1.67">1.67</option>
+                                <option value="1.74">1.74</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 处方度数（只读显示） -->
+            <div class="section-title"><i class="layui-icon layui-icon-eye"></i> 处方度数</div>
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">右眼球镜(S)</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="sphereOd" class="layui-input" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">左眼球镜(S)</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="sphereOs" class="layui-input" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">右眼柱镜(C)</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="cylinderOd" class="layui-input" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">左眼柱镜(C)</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="cylinderOs" class="layui-input" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">瞳距(PD)</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="pdDistance" class="layui-input" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">瞳高(PH)</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="phDistance" class="layui-input" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 费用信息 -->
+            <div class="section-title"><i class="layui-icon layui-icon-rmb"></i> 费用信息</div>
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">总价(元)</label>
+                        <div class="layui-input-block">
+                            <input type="number" name="price" placeholder="请输入总价" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">用途类型</label>
+                        <div class="layui-input-block">
+                            <select name="usageType">
+                                <option value="DISTANCE">远用</option>
+                                <option value="READING">阅读</option>
+                                <option value="PROGRESSIVE">渐进多焦点</option>
+                                <option value="COMPUTER">电脑专用</option>
+                                <option value="DRIVING">驾驶专用</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <button class="layui-btn" lay-submit lay-filter="saveBtn" style="width: 130px;">
+                    <i class="layui-icon layui-icon-ok"></i> 保存修改
+                </button>
+                <button type="button" class="layui-btn layui-btn-primary" onclick="closeLayer()"
+                    style="width: 130px; margin-left: 20px;">
+                    <i class="layui-icon layui-icon-close"></i> 取消
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        layui.use(['form', 'jquery', 'layer'], function () {
+            var form = layui.form;
+            var $ = layui.$;
+            var layer = layui.layer;
+
+            var prescriptionId = getQueryString('id');
+            console.log('编辑处方ID:', prescriptionId);
+
+            if (!prescriptionId) {
+                parent.layer.msg('缺少处方ID', { icon: 2 });
+                setTimeout(closeLayer, 1500);
+                return;
+            }
+
+            $('#prescriptionId').val(prescriptionId);
+
+            // 加载处方数据
+            $.ajax({
+                url: '/vision/api/prescription/' + prescriptionId,
+                type: 'GET',
+                success: function (res) {
+                    console.log('处方数据:', res);
+                    if (res.code === 0 && res.data) {
+                        var data = res.data;
+
+                        // 检查状态
+                        if (data.status !== 'DRAFT') {
+                            parent.layer.msg('只能编辑草稿状态的处方', { icon: 2 });
+                            setTimeout(closeLayer, 1500);
+                            return;
+                        }
+
+                        // 显示信息栏
+                        $('#displayPrescriptionNo').text(data.prescriptionNo || '-');
+                        $('#displayPatientName').text(data.patientName || '-');
+                        $('#patientIdValue').val(data.patientId);
+                        $('#optometryIdValue').val(data.optometryId);
+                        $('#doctorId').val(data.doctorId);
+
+                        // 填充表单
+                        form.val('prescriptionForm', {
+                            id: data.id,
+                            patientId: data.patientId,
+                            optometryId: data.optometryId,
+                            doctorId: data.doctorId,
+                            frameType: data.frameType || '',
+                            frameBrand: data.frameBrand || '',
+                            frameModel: data.frameModel || '',
+                            lensType: data.lensType || '',
+                            lensMaterial: data.lensMaterial || '',
+                            lensIndex: data.lensIndex || '',
+                            sphereOd: data.sphereOd || '',
+                            sphereOs: data.sphereOs || '',
+                            cylinderOd: data.cylinderOd || '',
+                            cylinderOs: data.cylinderOs || '',
+                            pdDistance: data.pdDistance || '',
+                            phDistance: data.phDistance || '',
+                            usageType: data.usageType || 'DISTANCE',
+                            price: data.price || ''
+                        });
+                    } else {
+                        parent.layer.msg(res.msg || '加载失败', { icon: 2 });
+                        setTimeout(closeLayer, 1500);
+                    }
+                },
+                error: function () {
+                    parent.layer.msg('网络错误', { icon: 2 });
+                    setTimeout(closeLayer, 1500);
+                }
+            });
+
+            // 保存修改
+            form.on('submit(saveBtn)', function (data) {
+                var formData = data.field;
+
+                var submitData = {
+                    id: parseInt(prescriptionId),
+                    patientId: parseInt($('#patientIdValue').val()),
+                    optometryId: parseInt($('#optometryIdValue').val()) || null,
+                    doctorId: parseInt($('#doctorId').val()) || null,
+                    frameType: formData.frameType || null,
+                    frameBrand: formData.frameBrand || null,
+                    frameModel: formData.frameModel || null,
+                    lensType: formData.lensType || null,
+                    lensMaterial: formData.lensMaterial || null,
+                    lensIndex: formData.lensIndex || null,
+                    sphereOd: formData.sphereOd || null,
+                    sphereOs: formData.sphereOs || null,
+                    cylinderOd: formData.cylinderOd || null,
+                    cylinderOs: formData.cylinderOs || null,
+                    pdDistance: formData.pdDistance || null,
+                    phDistance: formData.phDistance || null,
+                    usageType: formData.usageType || 'DISTANCE',
+                    price: formData.price || null
+                };
+
+                console.log('提交修改数据:', JSON.stringify(submitData));
+
+                var loadIndex = layer.load(1);
+
+                $.ajax({
+                    url: '/vision/api/prescription/update',
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(submitData),
+                    success: function (res) {
+                        layer.close(loadIndex);
+                        console.log('保存结果:', res);
+                        if (res.code === 0) {
+                            parent.layer.msg('修改保存成功', { icon: 1 });
+                            setTimeout(function () { closeLayer(); }, 1000);
+                        } else {
+                            layer.msg(res.msg || '保存失败', { icon: 2 });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        layer.close(loadIndex);
+                        console.error('保存失败:', status, error);
+                        parent.layer.msg('保存失败，请重试', { icon: 2 });
+                    }
+                });
+
+                return false;
+            });
+        });
+
+        function getQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return decodeURIComponent(r[2]);
+            return null;
+        }
+
+        function closeLayer() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+        /*]]>*/
+    </script>
+</body>
+
+</html>

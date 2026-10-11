@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>验光管理</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+
+        .search-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .table-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="search-box">
+        <div class="layui-row layui-col-space10">
+            <div class="layui-col-md3">
+                <select id="patientSelect" lay-search>
+                    <option value="">全部患者</option>
+                </select>
+            </div>
+            <div class="layui-col-md3">
+                <input type="text" id="keyword" placeholder="患者姓名" class="layui-input">
+            </div>
+            <div class="layui-col-md2">
+                <button class="layui-btn layui-btn-primary" id="searchBtn">
+                    <i class="layui-icon layui-icon-search"></i> 搜索
+                </button>
+                <button class="layui-btn layui-btn-primary" id="resetBtn">重置</button>
+            </div>
+            <div class="layui-col-md4" style="text-align: right;">
+                <button class="layui-btn" id="addBtn">
+                    <i class="layui-icon layui-icon-add-1"></i> 新建验光
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-box">
+        <table id="optometryTable" lay-filter="optometryTable"></table>
+    </div>
+
+    <!-- 操作栏模板 -->
+    <script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="view">查看</a>
+        {{# if(d.status === 'DRAFT'){ }}
+            <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="confirm">确认</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="cancel">作废</a>
+        {{# } }}
+        {{# if(d.status === 'CONFIRMED'){ }}
+            <a class="layui-btn layui-btn-xs" lay-event="prescription" style="background-color:#5FB878;">开处方</a>
+        {{# } }}
+    </div>
+</script>
+
+    <!-- 状态模板 -->
+    <script type="text/html" id="statusTpl">
+    {{# if(d.status === 'DRAFT'){ }}
+        <span class="layui-badge layui-bg-gray">草稿</span>
+    {{# } else if(d.status === 'CONFIRMED'){ }}
+        <span class="layui-badge layui-bg-green">已确认</span>
+    {{# } else { }}
+        <span class="layui-badge layui-bg-red">已作废</span>
+    {{# } }}
+</script>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        layui.use(['table', 'form', 'layer', 'jquery'], function () {
+            var table = layui.table;
+            var form = layui.form;
+            var layer = layui.layer;
+            var $ = layui.$;
+
+            console.log('验光管理页面加载完成');
+
+            // 加载患者下拉列表
+            $.ajax({
+                url: '/vision/api/patient/search',
+                type: 'GET',
+                success: function (res) {
+                    if (res.code === 0 && res.data) {
+                        var html = '<option value="">全部患者</option>';
+                        for (var i = 0; i < res.data.length; i++) {
+                            var p = res.data[i];
+                            html += '<option value="' + p.id + '">' + p.name + ' (' + (p.phone || '') + ')</option>';
+                        }
+                        $('#patientSelect').html(html);
+                        form.render('select');
+                    }
+                }
+            });
+
+            // 渲染表格
+            var tableIns = table.render({
+                elem: '#optometryTable',
+                url: '/vision/api/optometry/page',
+                page: true,
+                limit: 15,
+                cols: [[
+                    { type: 'numbers', title: '序号', width: 60 },
+                    { field: 'patientName', title: '患者', width: 100 },
+                    {
+                        field: 'checkDate', title: '检查时间', width: 160, templet: function (d) {
+                            return d.checkDate ? d.checkDate.substring(0, 16) : '-';
+                        }
+                    },
+                    { field: 'sphereOd', title: '右球镜', width: 80 },
+                    { field: 'sphereOs', title: '左球镜', width: 80 },
+                    { field: 'visionOdCorrected', title: '右矫正', width: 70 },
+                    { field: 'visionOsCorrected', title: '左矫正', width: 70 },
+                    { field: 'pdDistance', title: '瞳距', width: 70 },
+                    { field: 'optometristName', title: '验光师', width: 100 },
+                    { field: 'status', title: '状态', width: 80, templet: '#statusTpl' },
+                    { title: '操作', toolbar: '#toolbar', width: 240, fixed: 'right' }
+                ]],
+                parseData: function (res) {
+                    return {
+                        code: res.code,
+                        msg: res.msg,
+                        count: res.count,
+                        data: res.data
+                    };
+                }
+            });
+
+            // 搜索
+            $('#searchBtn').on('click', function () {
+                tableIns.reload({
+                    where: {
+                        patientId: $('#patientSelect').val(),
+                        keyword: $('#keyword').val()
+                    },
+                    page: { curr: 1 }
+                });
+            });
+
+            // 重置
+            $('#resetBtn').on('click', function () {
+                $('#patientSelect').val('');
+                $('#keyword').val('');
+                form.render('select');
+                tableIns.reload({
+                    where: { patientId: '', keyword: '' },
+                    page: { curr: 1 }
+                });
+            });
+
+            // 新建验光
+            $('#addBtn').on('click', function () {
+                layer.open({
+                    type: 2,
+                    title: '新建验光',
+                    content: '/vision/optometry/add',
+                    area: ['950px', '650px'],
+                    shadeClose: false,
+                    end: function () { tableIns.reload(); }
+                });
+            });
+
+            // 回车搜索
+            $('#keyword').on('keypress', function (e) {
+                if (e.keyCode === 13) $('#searchBtn').click();
+            });
+
+            // 监听工具条事件
+            table.on('tool(optometryTable)', function (obj) {
+                var data = obj.data;
+                console.log('操作事件:', obj.event, data);
+
+                if (obj.event === 'view') {
+                    // 查看详情
+                    layer.open({
+                        type: 2,
+                        title: '验光详情',
+                        content: '/vision/optometry/detail?id=' + data.id,
+                        area: ['800px', '550px']
+                    });
+                } else if (obj.event === 'edit') {
+                    // 编辑草稿验光记录
+                    editOptometry(data.id);
+                } else if (obj.event === 'confirm') {
+                    // 确认验光记录
+                    layer.confirm('确认后将无法修改，确定吗？', {
+                        icon: 3,
+                        title: '确认验光'
+                    }, function (index) {
+                        $.ajax({
+                            url: '/vision/api/optometry/confirm/' + data.id,
+                            type: 'PUT',
+                            success: function (res) {
+                                if (res.code === 0) {
+                                    layer.msg('确认成功', { icon: 1 });
+                                    tableIns.reload();
+                                } else {
+                                    layer.msg(res.msg || '操作失败', { icon: 2 });
+                                }
+                            },
+                            error: function () {
+                                layer.msg('网络错误，请重试', { icon: 2 });
+                            }
+                        });
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'cancel') {
+                    // 作废验光记录
+                    layer.confirm('确定作废该验光记录吗？作废后不可恢复！', {
+                        icon: 3,
+                        title: '作废验光'
+                    }, function (index) {
+                        $.ajax({
+                            url: '/vision/api/optometry/cancel/' + data.id,
+                            type: 'PUT',
+                            success: function (res) {
+                                if (res.code === 0) {
+                                    layer.msg('已作废', { icon: 1 });
+                                    tableIns.reload();
+                                } else {
+                                    layer.msg(res.msg || '操作失败', { icon: 2 });
+                                }
+                            },
+                            error: function () {
+                                layer.msg('网络错误，请重试', { icon: 2 });
+                            }
+                        });
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'prescription') {
+                    // 开具处方
+                    layer.open({
+                        type: 2,
+                        title: '开具处方',
+                        content: '/vision/prescription/add?optometryId=' + data.id,
+                        area: ['900px', '600px'],
+                        shadeClose: false
+                    });
+                }
+            });
+
+            // 编辑验光记录函数
+            function editOptometry(id) {
+                layer.open({
+                    type: 2,
+                    title: '编辑验光记录',
+                    content: '/vision/optometry/edit?id=' + id,
+                    area: ['950px', '650px'],
+                    shadeClose: false,
+                    end: function () { tableIns.reload(); }
+                });
+            }
+        });
+        /*]]>*/
+    </script>
+</body>
+
+</html>

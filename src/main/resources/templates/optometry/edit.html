@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>编辑验光记录</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #009688;
+            color: #333;
+        }
+
+        .eye-group {
+            display: flex;
+        }
+
+        .eye-item {
+            flex: 1;
+            padding: 0 15px;
+        }
+
+        .eye-label {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #009688;
+            font-size: 14px;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .info-bar {
+            background: #f0f7f6;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #009688;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form class="layui-form" lay-filter="optometryForm">
+        <input type="hidden" name="id" id="recordId">
+        <input type="hidden" name="patientId" id="patientIdValue">
+        <input type="hidden" name="optometristId" id="optometristId">
+
+        <div class="info-bar">
+            <strong>编辑验光记录</strong> |
+            患者：<span id="displayPatientName">-</span> |
+            检查时间：<span id="displayCheckDate">-</span> |
+            状态：<span style="color:#FFB800;">草稿</span>
+        </div>
+
+        <div class="layui-row">
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">检查时间</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="checkDate" id="checkDate" lay-verify="required" class="layui-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 裸眼视力 -->
+        <div class="section-title"><i class="layui-icon layui-icon-eye"></i> 裸眼视力</div>
+        <div class="eye-group">
+            <div class="eye-item">
+                <div class="eye-label">右眼 (OD)</div>
+                <input type="text" name="visionOdNaked" placeholder="裸眼视力" class="layui-input">
+            </div>
+            <div class="eye-item">
+                <div class="eye-label">左眼 (OS)</div>
+                <input type="text" name="visionOsNaked" placeholder="裸眼视力" class="layui-input">
+            </div>
+            <div class="eye-item">
+                <div class="eye-label">双眼 (OU)</div>
+                <input type="text" name="visionOuNaked" placeholder="裸眼视力" class="layui-input">
+            </div>
+        </div>
+
+        <!-- 电脑验光 -->
+        <div class="section-title"><i class="layui-icon layui-icon-computer"></i> 电脑验光</div>
+        <div class="eye-group">
+            <div class="eye-item">
+                <div class="eye-label">右眼 (OD)</div>
+                <div class="layui-row layui-col-space5">
+                    <div class="layui-col-md4"><input type="text" name="sphereOd" placeholder="球镜(S)"
+                            class="layui-input"></div>
+                    <div class="layui-col-md4"><input type="text" name="cylinderOd" placeholder="柱镜(C)"
+                            class="layui-input"></div>
+                    <div class="layui-col-md4"><input type="text" name="axisOd" placeholder="轴位(A)" class="layui-input">
+                    </div>
+                </div>
+            </div>
+            <div class="eye-item">
+                <div class="eye-label">左眼 (OS)</div>
+                <div class="layui-row layui-col-space5">
+                    <div class="layui-col-md4"><input type="text" name="sphereOs" placeholder="球镜(S)"
+                            class="layui-input"></div>
+                    <div class="layui-col-md4"><input type="text" name="cylinderOs" placeholder="柱镜(C)"
+                            class="layui-input"></div>
+                    <div class="layui-col-md4"><input type="text" name="axisOs" placeholder="轴位(A)" class="layui-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 矫正视力 -->
+        <div class="section-title"><i class="layui-icon layui-icon-ok-circle"></i> 矫正视力</div>
+        <div class="eye-group">
+            <div class="eye-item"><input type="text" name="visionOdCorrected" placeholder="右眼矫正视力" class="layui-input">
+            </div>
+            <div class="eye-item"><input type="text" name="visionOsCorrected" placeholder="左眼矫正视力" class="layui-input">
+            </div>
+            <div class="eye-item"><input type="text" name="visionOuCorrected" placeholder="双眼矫正视力" class="layui-input">
+            </div>
+        </div>
+
+        <!-- 其他参数 -->
+        <div class="section-title"><i class="layui-icon layui-icon-set"></i> 其他参数</div>
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md6">
+                <label class="layui-form-label" style="width:80px;">瞳距(PD)</label>
+                <div class="layui-input-block" style="margin-left:110px;"><input type="text" name="pdDistance"
+                        placeholder="mm" class="layui-input"></div>
+            </div>
+            <div class="layui-col-md6">
+                <label class="layui-form-label" style="width:80px;">瞳高(PH)</label>
+                <div class="layui-input-block" style="margin-left:110px;"><input type="text" name="phDistance"
+                        placeholder="mm" class="layui-input"></div>
+            </div>
+        </div>
+
+        <!-- 备注 -->
+        <div class="section-title"><i class="layui-icon layui-icon-note"></i> 备注</div>
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="margin-left:0;"><textarea name="remark" placeholder="请输入备注信息"
+                    class="layui-textarea"></textarea></div>
+        </div>
+
+        <div class="form-footer">
+            <button class="layui-btn" lay-submit lay-filter="saveBtn" style="width: 130px;"><i
+                    class="layui-icon layui-icon-ok"></i> 保存修改</button>
+            <button type="button" class="layui-btn layui-btn-primary" onclick="closeLayer()"
+                style="width: 130px; margin-left: 20px;"><i class="layui-icon layui-icon-close"></i> 取消</button>
+        </div>
+    </form>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        layui.use(['form', 'laydate', 'jquery'], function () {
+            var form = layui.form;
+            var laydate = layui.laydate;
+            var $ = layui.$;
+
+            // 【关键修复】设置日期格式包含秒
+            laydate.render({
+                elem: '#checkDate',
+                type: 'datetime',
+                format: 'yyyy-MM-dd HH:mm:ss',  // 必须包含秒
+                value: new Date()
+            });
+
+            var recordId = getQueryString('id');
+            console.log('编辑验光记录ID:', recordId);
+
+            if (!recordId) {
+                parent.layer.msg('缺少验光记录ID', { icon: 2 });
+                setTimeout(closeLayer, 1500);
+                return;
+            }
+
+            $('#recordId').val(recordId);
+
+            // 加载验光记录数据
+            $.ajax({
+                url: '/vision/api/optometry/' + recordId,
+                type: 'GET',
+                success: function (res) {
+                    console.log('验光数据:', res);
+                    if (res.code === 0 && res.data) {
+                        var data = res.data;
+
+                        if (data.status !== 'DRAFT') {
+                            parent.layer.msg('只能编辑草稿状态的验光记录', { icon: 2 });
+                            setTimeout(closeLayer, 1500);
+                            return;
+                        }
+
+                        $('#displayPatientName').text(data.patientName || '-');
+                        $('#displayCheckDate').text(data.checkDate || '-');
+                        $('#patientIdValue').val(data.patientId);
+                        $('#optometristId').val(data.optometristId || '');
+
+                        // 填充表单，日期截取前19位（yyyy-MM-dd HH:mm:ss）
+                        var checkDateValue = data.checkDate ? data.checkDate.substring(0, 19) : '';
+
+                        form.val('optometryForm', {
+                            id: data.id,
+                            patientId: data.patientId,
+                            optometristId: data.optometristId,
+                            checkDate: checkDateValue,
+                            visionOdNaked: data.visionOdNaked || '',
+                            visionOsNaked: data.visionOsNaked || '',
+                            visionOuNaked: data.visionOuNaked || '',
+                            sphereOd: data.sphereOd || '',
+                            sphereOs: data.sphereOs || '',
+                            cylinderOd: data.cylinderOd || '',
+                            cylinderOs: data.cylinderOs || '',
+                            axisOd: data.axisOd || '',
+                            axisOs: data.axisOs || '',
+                            visionOdCorrected: data.visionOdCorrected || '',
+                            visionOsCorrected: data.visionOsCorrected || '',
+                            visionOuCorrected: data.visionOuCorrected || '',
+                            pdDistance: data.pdDistance || '',
+                            phDistance: data.phDistance || '',
+                            remark: data.remark || ''
+                        });
+
+                        console.log('表单数据填充完成');
+                    } else {
+                        parent.layer.msg(res.msg || '加载失败', { icon: 2 });
+                        setTimeout(closeLayer, 1500);
+                    }
+                },
+                error: function () {
+                    parent.layer.msg('网络错误', { icon: 2 });
+                    setTimeout(closeLayer, 1500);
+                }
+            });
+
+            // 表单提交
+            form.on('submit(saveBtn)', function (data) {
+                var formData = data.field;
+
+                // 【关键修复】确保日期格式包含秒
+                var checkDate = formData.checkDate;
+                if (checkDate && checkDate.length === 16) {
+                    // "2026-05-23 13:28" -> "2026-05-23 13:28:00"
+                    checkDate = checkDate + ':00';
+                }
+
+                var submitData = {
+                    id: parseInt(recordId),
+                    patientId: parseInt($('#patientIdValue').val()),
+                    optometristId: parseInt($('#optometristId').val()) || 2,
+                    checkDate: checkDate,
+                    visionOdNaked: formData.visionOdNaked || null,
+                    visionOsNaked: formData.visionOsNaked || null,
+                    visionOuNaked: formData.visionOuNaked || null,
+                    sphereOd: formData.sphereOd || null,
+                    sphereOs: formData.sphereOs || null,
+                    cylinderOd: formData.cylinderOd || null,
+                    cylinderOs: formData.cylinderOs || null,
+                    axisOd: formData.axisOd ? parseInt(formData.axisOd) : null,
+                    axisOs: formData.axisOs ? parseInt(formData.axisOs) : null,
+                    visionOdCorrected: formData.visionOdCorrected || null,
+                    visionOsCorrected: formData.visionOsCorrected || null,
+                    visionOuCorrected: formData.visionOuCorrected || null,
+                    pdDistance: formData.pdDistance || null,
+                    phDistance: formData.phDistance || null,
+                    remark: formData.remark || null
+                };
+
+                console.log('提交修改数据:', JSON.stringify(submitData));
+
+                var loadIndex = layer.load(1);
+
+                $.ajax({
+                    url: '/vision/api/optometry/save',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(submitData),
+                    success: function (res) {
+                        layer.close(loadIndex);
+                        console.log('保存结果:', res);
+                        if (res.code === 0) {
+                            parent.layer.msg('修改保存成功', { icon: 1 });
+                            setTimeout(function () { closeLayer(); }, 1000);
+                        } else {
+                            parent.layer.msg(res.msg || '保存失败', { icon: 2 });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        layer.close(loadIndex);
+                        console.error('保存失败:', status, error);
+                        parent.layer.msg('保存失败，请重试', { icon: 2 });
+                    }
+                });
+
+                return false;
+            });
+        });
+
+        function getQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return decodeURIComponent(r[2]);
+            return null;
+        }
+
+        function closeLayer() {
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+        /*]]>*/
+    </script>
+</body>
+
+</html>

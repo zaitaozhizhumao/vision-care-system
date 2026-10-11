@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>加工单详情</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .detail-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+            display: flex;
+        }
+
+        .detail-label {
+            width: 120px;
+            color: #666;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="detailContent"></div>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script>
+        layui.use(['jquery'], function () {
+            var $ = layui.$;
+            var id = getQueryString('id');
+
+            if (id) {
+                $.get('/vision/api/processing/' + id, function (res) {
+                    if (res.code === 0) {
+                        var d = res.data;
+                        var html = '<div class="detail-title">加工单详情</div>';
+                        html += '<div class="detail-item"><span class="detail-label">加工单号：</span><span class="detail-value">' + (d.orderNo || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">患者：</span><span class="detail-value">' + (d.patientName || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">处方编号：</span><span class="detail-value">' + (d.prescriptionNo || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">镜架品牌：</span><span class="detail-value">' + (d.frameBrand || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">镜片类型：</span><span class="detail-value">' + (d.lensType || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">状态：</span><span class="detail-value">' + (d.status || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">加工师：</span><span class="detail-value">' + (d.processorName || '-') + '</span></div>';
+                        $('#detailContent').html(html);
+                    }
+                });
+            }
+        });
+
+        function getQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return decodeURIComponent(r[2]);
+            return null;
+        }
+    </script>
+</body>
+
+</html>

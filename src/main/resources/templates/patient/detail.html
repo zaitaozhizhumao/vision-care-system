@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>患者详情</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .detail-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #009688;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+            display: flex;
+        }
+
+        .detail-label {
+            width: 100px;
+            color: #666;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .tab-content {
+            padding: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="patientInfo"></div>
+
+    <div style="margin-top: 20px;">
+        <div class="layui-tab">
+            <ul class="layui-tab-title">
+                <li class="layui-this">验光记录</li>
+                <li>处方记录</li>
+                <li>随访记录</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <table id="optometryTable" lay-filter="optometryTable"></table>
+                </div>
+                <div class="layui-tab-item">
+                    <table id="prescriptionTable" lay-filter="prescriptionTable"></table>
+                </div>
+                <div class="layui-tab-item">
+                    <table id="followupTable" lay-filter="followupTable"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        layui.use(['table', 'element', 'jquery'], function () {
+            var table = layui.table;
+            var element = layui.element;
+            var $ = layui.$;
+
+            var patientId = getQueryString('id');
+
+            // 加载患者信息
+            if (patientId) {
+                $.get('/vision/api/patient/' + patientId, function (res) {
+                    if (res.code === 0) {
+                        var p = res.data;
+                        var html = '<div class="detail-title">' + (p.name || '') + ' - 基本信息</div>';
+                        html += '<div class="detail-item"><span class="detail-label">患者编号：</span><span class="detail-value">' + (p.patientNo || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">性别：</span><span class="detail-value">' + (p.gender === 'MALE' ? '男' : '女') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">出生日期：</span><span class="detail-value">' + (p.birthDate || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">年龄：</span><span class="detail-value">' + (p.age || '-') + ' 岁</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">联系电话：</span><span class="detail-value">' + (p.phone || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">身份证号：</span><span class="detail-value">' + (p.idCard || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">地址：</span><span class="detail-value">' + (p.address || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">病史：</span><span class="detail-value">' + (p.medicalHistory || '-') + '</span></div>';
+                        html += '<div class="detail-item"><span class="detail-label">家族史：</span><span class="detail-value">' + (p.familyHistory || '-') + '</span></div>';
+                        $('#patientInfo').html(html);
+                    }
+                });
+            }
+
+            // 验光记录表格
+            table.render({
+                elem: '#optometryTable',
+                url: '/vision/api/optometry/page',
+                where: { patientId: patientId },
+                page: false,
+                limit: 100,
+                cols: [[
+                    { type: 'numbers', title: '序号', width: 60 },
+                    { field: 'checkDate', title: '检查时间', width: 160 },
+                    { field: 'sphereOd', title: '右球镜', width: 80 },
+                    { field: 'sphereOs', title: '左球镜', width: 80 },
+                    { field: 'visionOdCorrected', title: '右矫正', width: 80 },
+                    { field: 'visionOsCorrected', title: '左矫正', width: 80 },
+                    { field: 'optometristName', title: '验光师', width: 100 },
+                    {
+                        field: 'status', title: '状态', width: 80, templet: function (d) {
+                            if (d.status === 'DRAFT') return '<span class="layui-badge layui-bg-gray">草稿</span>';
+                            if (d.status === 'CONFIRMED') return '<span class="layui-badge layui-bg-green">已确认</span>';
+                            return '<span class="layui-badge">已作废</span>';
+                        }
+                    }
+                ]]
+            });
+
+            // 处方记录表格
+            table.render({
+                elem: '#prescriptionTable',
+                url: '/vision/api/prescription/page',
+                where: { keyword: patientId },
+                page: false,
+                limit: 100,
+                cols: [[
+                    { type: 'numbers', title: '序号', width: 60 },
+                    { field: 'prescriptionNo', title: '处方编号', width: 130 },
+                    { field: 'createTime', title: '开具时间', width: 160 },
+                    { field: 'doctorName', title: '医生', width: 100 },
+                    { field: 'price', title: '金额', width: 80 },
+                    {
+                        field: 'status', title: '状态', width: 80, templet: function (d) {
+                            if (d.status === 'DRAFT') return '<span class="layui-badge layui-bg-gray">草稿</span>';
+                            if (d.status === 'PENDING') return '<span class="layui-badge layui-bg-blue">待处理</span>';
+                            if (d.status === 'PROCESSING') return '<span class="layui-badge layui-bg-orange">加工中</span>';
+                            if (d.status === 'COMPLETED') return '<span class="layui-badge layui-bg-green">已完成</span>';
+                            return d.status;
+                        }
+                    }
+                ]]
+            });
+
+            // 随访记录表格
+            table.render({
+                elem: '#followupTable',
+                url: '/vision/api/followup/patient/' + patientId,
+                page: false,
+                limit: 100,
+                cols: [[
+                    { type: 'numbers', title: '序号', width: 60 },
+                    { field: 'planDate', title: '计划日期', width: 120 },
+                    {
+                        field: 'followType', title: '随访类型', width: 120, templet: function (d) {
+                            var map = {
+                                'ONE_WEEK': '一周随访',
+                                'ONE_MONTH': '一月随访',
+                                'THREE_MONTHS': '三月随访',
+                                'SIX_MONTHS': '六月随访',
+                                'ONE_YEAR': '一年随访'
+                            };
+                            return map[d.followType] || d.followType;
+                        }
+                    },
+                    { field: 'content', title: '内容', minWidth: 200 },
+                    {
+                        field: 'status', title: '状态', width: 80, templet: function (d) {
+                            if (d.status === 'PENDING') return '<span class="layui-badge layui-bg-blue">待随访</span>';
+                            if (d.status === 'COMPLETED') return '<span class="layui-badge layui-bg-green">已完成</span>';
+                            if (d.status === 'MISSED') return '<span class="layui-badge layui-bg-red">已逾期</span>';
+                            return d.status;
+                        }
+                    }
+                ]]
+            });
+        });
+
+        function getQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return decodeURIComponent(r[2]);
+            return null;
+        }
+        /*]]>*/
+    </script>
+</body>
+
+</html>

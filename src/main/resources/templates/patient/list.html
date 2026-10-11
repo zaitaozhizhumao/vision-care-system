@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>患者管理</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+
+        .search-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="search-box">
+        <div class="layui-row layui-col-space10">
+            <div class="layui-col-md4">
+                <input type="text" id="keyword" placeholder="姓名/编号/电话" class="layui-input">
+            </div>
+            <div class="layui-col-md2">
+                <button class="layui-btn layui-btn-primary" id="searchBtn">
+                    <i class="layui-icon layui-icon-search"></i> 搜索
+                </button>
+                <button class="layui-btn layui-btn-primary" id="resetBtn">
+                    <i class="layui-icon layui-icon-refresh"></i> 重置
+                </button>
+            </div>
+            <div class="layui-col-md6" style="text-align: right;">
+                <button class="layui-btn" id="addBtn">
+                    <i class="layui-icon layui-icon-add-1"></i> 新增患者
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-box">
+        <table id="patientTable" lay-filter="patientTable"></table>
+    </div>
+
+    <!-- 操作栏模板 -->
+    <script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="view">
+            <i class="layui-icon layui-icon-read"></i> 查看
+        </a>
+        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="edit">
+            <i class="layui-icon layui-icon-edit"></i> 编辑
+        </a>
+        <a class="layui-btn layui-btn-xs" lay-event="optometry" style="background-color:#5FB878; border-color:#5FB878;">
+            <i class="layui-icon layui-icon-survey"></i> 验光
+        </a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">
+            <i class="layui-icon layui-icon-delete"></i> 删除
+        </a>
+    </div>
+</script>
+
+    <!-- 性别模板 -->
+    <script type="text/html" id="genderTpl">
+    {{# if(d.gender === 'MALE'){ }}
+        <span style="color: #2196F3;"><i class="layui-icon layui-icon-male"></i> 男</span>
+    {{# } else { }}
+        <span style="color: #E91E63;"><i class="layui-icon layui-icon-female"></i> 女</span>
+    {{# } }}
+</script>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        layui.use(['table', 'layer', 'form', 'jquery'], function () {
+            var table = layui.table;
+            var layer = layui.layer;
+            var form = layui.form;
+            var $ = layui.$;
+
+            console.log('患者列表页面加载完成');
+
+            // 渲染表格
+            var tableIns = table.render({
+                elem: '#patientTable',
+                url: '/vision/api/patient/page',
+                page: true,
+                limit: 15,
+                cols: [[
+                    { type: 'numbers', title: '序号', width: 60 },
+                    { field: 'patientNo', title: '患者编号', width: 130 },
+                    { field: 'name', title: '姓名', width: 100 },
+                    { field: 'gender', title: '性别', width: 80, templet: '#genderTpl' },
+                    {
+                        field: 'birthDate', title: '年龄', width: 70, templet: function (d) {
+                            if (d.birthDate) {
+                                var birth = new Date(d.birthDate);
+                                var now = new Date();
+                                var age = now.getFullYear() - birth.getFullYear();
+                                return age + '岁';
+                            }
+                            return '-';
+                        }
+                    },
+                    { field: 'phone', title: '联系电话', width: 130 },
+                    { field: 'address', title: '地址', minWidth: 150 },
+                    {
+                        field: 'createTime', title: '创建时间', width: 160, templet: function (d) {
+                            if (d.createTime) {
+                                return d.createTime.substring(0, 16);
+                            }
+                            return '-';
+                        }
+                    },
+                    { title: '操作', toolbar: '#toolbar', width: 240, fixed: 'right' }
+                ]],
+                parseData: function (res) {
+                    return {
+                        code: res.code,
+                        msg: res.msg,
+                        count: res.count,
+                        data: res.data
+                    };
+                },
+                done: function () {
+                    console.log('表格渲染完成');
+                }
+            });
+
+            // 搜索按钮
+            $('#searchBtn').on('click', function () {
+                tableIns.reload({
+                    where: { keyword: $('#keyword').val() },
+                    page: { curr: 1 }
+                });
+            });
+
+            // 重置按钮
+            $('#resetBtn').on('click', function () {
+                $('#keyword').val('');
+                tableIns.reload({
+                    where: { keyword: '' },
+                    page: { curr: 1 }
+                });
+            });
+
+            // 新增按钮
+            $('#addBtn').on('click', function () {
+                layer.open({
+                    type: 2,
+                    title: '新增患者',
+                    content: '/vision/patient/add',
+                    area: ['750px', '550px'],
+                    shadeClose: false,
+                    end: function () {
+                        tableIns.reload();
+                    }
+                });
+            });
+
+            // 回车搜索
+            $('#keyword').on('keypress', function (e) {
+                if (e.keyCode === 13) {
+                    $('#searchBtn').click();
+                }
+            });
+
+            // 监听工具条事件
+            table.on('tool(patientTable)', function (obj) {
+                var data = obj.data;
+                console.log('点击事件:', obj.event, data);
+
+                if (obj.event === 'view') {
+                    // 查看患者详情
+                    layer.open({
+                        type: 2,
+                        title: '患者详情 - ' + data.name,
+                        content: '/vision/patient/detail?id=' + data.id,
+                        area: ['850px', '600px'],
+                        shadeClose: false
+                    });
+                } else if (obj.event === 'edit') {
+                    // 编辑患者
+                    layer.open({
+                        type: 2,
+                        title: '编辑患者 - ' + data.name,
+                        content: '/vision/patient/edit?id=' + data.id,
+                        area: ['750px', '550px'],
+                        shadeClose: false,
+                        end: function () {
+                            tableIns.reload();
+                        }
+                    });
+                } else if (obj.event === 'optometry') {
+                    // 新建验光
+                    layer.open({
+                        type: 2,
+                        title: '验光检查 - ' + data.name,
+                        content: '/vision/optometry/add?patientId=' + data.id,
+                        area: ['950px', '650px'],
+                        shadeClose: false
+                    });
+                } else if (obj.event === 'delete') {
+                    // 删除患者
+                    layer.confirm('确定删除患者 "' + data.name + '" 吗？删除后相关数据将无法恢复！', {
+                        icon: 3,
+                        title: '警告'
+                    }, function (index) {
+                        $.ajax({
+                            url: '/vision/api/patient/' + data.id,
+                            type: 'DELETE',
+                            success: function (res) {
+                                if (res.code === 0) {
+                                    layer.msg('删除成功', { icon: 1 });
+                                    tableIns.reload();
+                                } else {
+                                    layer.msg(res.msg || '删除失败', { icon: 2 });
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('删除失败:', error);
+                                layer.msg('删除失败，请重试', { icon: 2 });
+                            }
+                        });
+                        layer.close(index);
+                    });
+                }
+            });
+
+            // 全局函数（供其他方式调用）
+            window.viewPatient = function (id) {
+                layer.open({
+                    type: 2,
+                    title: '患者详情',
+                    content: '/vision/patient/detail?id=' + id,
+                    area: ['850px', '600px']
+                });
+            };
+
+            window.editPatient = function (id) {
+                layer.open({
+                    type: 2,
+                    title: '编辑患者',
+                    content: '/vision/patient/edit?id=' + id,
+                    area: ['750px', '550px'],
+                    shadeClose: false,
+                    end: function () {
+                        tableIns.reload();
+                    }
+                });
+            };
+        });
+        /*]]>*/
+    </script>
+</body>
+
+</html>

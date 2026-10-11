@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>用户管理</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+
+        .search-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .table-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="search-box">
+        <div class="layui-row">
+            <div class="layui-col-md12" style="text-align: right;">
+                <button class="layui-btn" id="addUserBtn">
+                    <i class="layui-icon layui-icon-add-1"></i> 新增用户
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-box">
+        <table id="userTable" lay-filter="userTable"></table>
+    </div>
+
+    <!-- 操作栏模板 -->
+    <script type="text/html" id="toolbar">
+    <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="edit">编辑</a>
+    {{# if(d.status === 1){ }}
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="disable">禁用</a>
+    {{# } else { }}
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="enable">启用</a>
+    {{# } }}
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="resetPwd">重置密码</a>
+    {{# if(d.role !== 'ADMIN'){ }}
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+    {{# } }}
+</script>
+
+    <!-- 状态模板 -->
+    <script type="text/html" id="statusTpl">
+    {{# if(d.status === 1){ }}
+        <span class="layui-badge layui-bg-green">启用</span>
+    {{# } else { }}
+        <span class="layui-badge layui-bg-red">禁用</span>
+    {{# } }}
+</script>
+
+    <!-- 角色模板 -->
+    <script type="text/html" id="roleTpl">
+    {{# var roleMap = {
+        'ADMIN': '<span class="layui-badge layui-bg-red">管理员</span>',
+        'OPTOMETRIST': '<span class="layui-badge layui-bg-blue">验光师</span>',
+        'DOCTOR': '<span class="layui-badge layui-bg-green">医生</span>',
+        'PROCESSOR': '<span class="layui-badge layui-bg-orange">加工师</span>'
+    }; }}
+    {{# return roleMap[d.role] || d.role; }}
+</script>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        layui.use(['table', 'form', 'layer', 'jquery'], function () {
+            var table = layui.table;
+            var form = layui.form;
+            var layer = layui.layer;
+            var $ = layui.$;
+
+            var tableIns = table.render({
+                elem: '#userTable',
+                url: '/vision/api/user/list',
+                page: false,
+                cols: [[
+                    { type: 'numbers', title: '序号', width: 60 },
+                    { field: 'username', title: '用户名', width: 120 },
+                    { field: 'realName', title: '真实姓名', width: 120 },
+                    { field: 'role', title: '角色', width: 100, templet: '#roleTpl' },
+                    { field: 'phone', title: '电话', width: 130 },
+                    { field: 'email', title: '邮箱', width: 160 },
+                    { field: 'status', title: '状态', width: 80, templet: '#statusTpl' },
+                    { field: 'createTime', title: '创建时间', width: 160 },
+                    { title: '操作', toolbar: '#toolbar', width: 240, fixed: 'right' }
+                ]],
+                parseData: function (res) {
+                    return { code: res.code, msg: res.msg, data: res.data };
+                }
+            });
+
+            // 新增用户
+            $('#addUserBtn').on('click', function () {
+                layer.open({
+                    type: 1,
+                    title: '新增用户',
+                    area: ['500px', '480px'],
+                    content: '<div style="padding:20px;">' +
+                        '<form class="layui-form" lay-filter="addUserForm">' +
+                        '<div class="layui-form-item"><label class="layui-form-label">用户名</label>' +
+                        '<div class="layui-input-block"><input type="text" name="username" lay-verify="required" class="layui-input"></div></div>' +
+                        '<div class="layui-form-item"><label class="layui-form-label">密码</label>' +
+                        '<div class="layui-input-block"><input type="password" name="password" placeholder="默认123456" class="layui-input"></div></div>' +
+                        '<div class="layui-form-item"><label class="layui-form-label">真实姓名</label>' +
+                        '<div class="layui-input-block"><input type="text" name="realName" class="layui-input"></div></div>' +
+                        '<div class="layui-form-item"><label class="layui-form-label">角色</label>' +
+                        '<div class="layui-input-block"><select name="role">' +
+                        '<option value="">请选择角色</option>' +
+                        '<option value="OPTOMETRIST">验光师</option>' +
+                        '<option value="DOCTOR">医生</option>' +
+                        '<option value="PROCESSOR">加工师</option>' +
+                        '</select></div></div>' +
+                        '<div class="layui-form-item"><label class="layui-form-label">电话</label>' +
+                        '<div class="layui-input-block"><input type="text" name="phone" class="layui-input"></div></div>' +
+                        '<div class="layui-form-item"><label class="layui-form-label">邮箱</label>' +
+                        '<div class="layui-input-block"><input type="text" name="email" class="layui-input"></div></div>' +
+                        '</form></div>',
+                    btn: ['保存', '取消'],
+                    yes: function (index, layero) {
+                        var formData = form.val('addUserForm');
+                        if (!formData.role) {
+                            layer.msg('请选择角色', { icon: 2 });
+                            return;
+                        }
+                        $.ajax({
+                            url: '/vision/api/user/add',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(formData),
+                            success: function (res) {
+                                if (res.code === 0) {
+                                    layer.msg('添加成功', { icon: 1 });
+                                    layer.close(index);
+                                    tableIns.reload();
+                                } else { layer.msg(res.msg, { icon: 2 }); }
+                            }
+                        });
+                    },
+                    btn2: function (index) { layer.close(index); },
+                    success: function () { form.render(); }
+                });
+            });
+
+            // 监听工具条
+            table.on('tool(userTable)', function (obj) {
+                var data = obj.data;
+
+                if (obj.event === 'edit') {
+                    // 角色下拉选项
+                    var roleOptions = '';
+                    var roles = ['OPTOMETRIST', 'DOCTOR', 'PROCESSOR'];
+                    var roleNames = { 'OPTOMETRIST': '验光师', 'DOCTOR': '医生', 'PROCESSOR': '加工师' };
+                    if (data.role === 'ADMIN') {
+                        roles.unshift('ADMIN');
+                        roleNames['ADMIN'] = '管理员';
+                    }
+                    for (var i = 0; i < roles.length; i++) {
+                        var selected = (data.role === roles[i]) ? ' selected' : '';
+                        roleOptions += '<option value="' + roles[i] + '"' + selected + '>' + roleNames[roles[i]] + '</option>';
+                    }
+
+                    layer.open({
+                        type: 1,
+                        title: '编辑用户 - ' + data.username,
+                        area: ['500px', '420px'],
+                        content: '<div style="padding:20px;">' +
+                            '<form class="layui-form" lay-filter="editUserForm">' +
+                            '<div class="layui-form-item"><label class="layui-form-label">新密码</label>' +
+                            '<div class="layui-input-block"><input type="password" name="password" placeholder="留空则不修改密码" class="layui-input"></div></div>' +
+                            '<div class="layui-form-item"><label class="layui-form-label">真实姓名</label>' +
+                            '<div class="layui-input-block"><input type="text" name="realName" value="' + (data.realName || '') + '" class="layui-input"></div></div>' +
+                            '<div class="layui-form-item"><label class="layui-form-label">角色</label>' +
+                            '<div class="layui-input-block"><select name="role">' + roleOptions + '</select></div></div>' +
+                            '<div class="layui-form-item"><label class="layui-form-label">电话</label>' +
+                            '<div class="layui-input-block"><input type="text" name="phone" value="' + (data.phone || '') + '" class="layui-input"></div></div>' +
+                            '<div class="layui-form-item"><label class="layui-form-label">邮箱</label>' +
+                            '<div class="layui-input-block"><input type="text" name="email" value="' + (data.email || '') + '" class="layui-input"></div></div>' +
+                            '</form></div>',
+                        btn: ['保存', '取消'],
+                        yes: function (index, layero) {
+                            var formData = form.val('editUserForm');
+                            formData.id = data.id;
+
+                            if (!formData.role) {
+                                layer.msg('请选择角色', { icon: 2 });
+                                return;
+                            }
+
+                            // 如果密码为空，不传密码字段
+                            if (!formData.password) {
+                                delete formData.password;
+                            }
+
+                            $.ajax({
+                                url: '/vision/api/user/update',
+                                type: 'PUT',
+                                contentType: 'application/json',
+                                data: JSON.stringify(formData),
+                                success: function (res) {
+                                    if (res.code === 0) {
+                                        layer.msg('更新成功', { icon: 1 });
+                                        layer.close(index);
+                                        tableIns.reload();
+                                    } else { layer.msg(res.msg, { icon: 2 }); }
+                                }
+                            });
+                        },
+                        btn2: function (index) { layer.close(index); },
+                        success: function () { form.render(); }
+                    });
+                } else if (obj.event === 'disable' || obj.event === 'enable') {
+                    var newStatus = obj.event === 'disable' ? 0 : 1;
+                    var msg = obj.event === 'disable' ? '确定禁用该用户吗？' : '确定启用该用户吗？';
+                    layer.confirm(msg, function (index) {
+                        $.ajax({
+                            url: '/vision/api/user/status/' + data.id,
+                            type: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ status: newStatus }),
+                            success: function (res) {
+                                if (res.code === 0) { layer.msg('操作成功', { icon: 1 }); tableIns.reload(); }
+                                else { layer.msg(res.msg, { icon: 2 }); }
+                            }
+                        });
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'resetPwd') {
+                    layer.confirm('确定重置密码为123456吗？', function (index) {
+                        $.ajax({
+                            url: '/vision/api/user/password/' + data.id,
+                            type: 'PUT',
+                            success: function (res) {
+                                if (res.code === 0) { layer.msg('密码已重置为123456', { icon: 1 }); }
+                                else { layer.msg(res.msg, { icon: 2 }); }
+                            }
+                        });
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'delete') {
+                    layer.confirm('确定删除该用户吗？', function (index) {
+                        $.ajax({
+                            url: '/vision/api/user/' + data.id,
+                            type: 'DELETE',
+                            success: function (res) {
+                                if (res.code === 0) { layer.msg('删除成功', { icon: 1 }); tableIns.reload(); }
+                                else { layer.msg(res.msg, { icon: 2 }); }
+                            }
+                        });
+                        layer.close(index);
+                    });
+                }
+            });
+        });
+        /*]]>*/
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>加工追溯</title>
+    <link rel="stylesheet" href="/vision/static/layui/css/layui.css">
+    <style>
+        body {
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+
+        .search-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .quality-dialog {
+            padding: 10px;
+        }
+
+        .quality-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .quality-item {
+            flex: 1;
+            text-align: center;
+            padding: 25px 20px;
+            border: 3px solid #e6e6e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quality-item:hover {
+            border-color: #009688;
+            background: #f0f9f8;
+        }
+
+        .quality-item.selected-pass {
+            border-color: #5FB878;
+            background: #f0f9f0;
+        }
+
+        .quality-item.selected-fail {
+            border-color: #FF5722;
+            background: #fff5f5;
+        }
+
+        .quality-label {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 15px 0 8px;
+        }
+
+        .quality-label-pass {
+            color: #5FB878;
+        }
+
+        .quality-label-fail {
+            color: #FF5722;
+        }
+
+        .quality-desc {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .quality-remark {
+            margin-top: 20px;
+        }
+
+        .quality-result-display {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="search-box">
+        <div class="layui-row layui-col-space10">
+            <div class="layui-col-md3">
+                <input type="text" id="keyword" placeholder="患者姓名/加工单号" class="layui-input">
+            </div>
+            <div class="layui-col-md2">
+                <select id="statusSelect">
+                    <option value="">全部状态</option>
+                    <option value="PENDING">待加工</option>
+                    <option value="PROCESSING">加工中</option>
+                    <option value="QUALITY_CHECK">待质检</option>
+                    <option value="COMPLETED">已完成</option>
+                    <option value="DELIVERED">已交付</option>
+                </select>
+            </div>
+            <div class="layui-col-md2">
+                <button class="layui-btn layui-btn-primary" id="searchBtn">
+                    <i class="layui-icon layui-icon-search"></i> 搜索
+                </button>
+                <button class="layui-btn layui-btn-primary" id="resetBtn">重置</button>
+            </div>
+            <div class="layui-col-md5" style="text-align: right;">
+                <span class="layui-badge layui-bg-blue" style="padding: 8px 15px; font-size: 14px;">
+                    <i class="layui-icon layui-icon-component"></i>
+                    待处理: <span id="pendingCount">0</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-box">
+        <table id="processingTable" lay-filter="processingTable"></table>
+    </div>
+
+    <!-- 操作栏模板 -->
+    <script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="view">查看</a>
+        {{# if(d.status === 'PENDING'){ }}
+            <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="start">开始加工</a>
+        {{# } }}
+        {{# if(d.status === 'PROCESSING'){ }}
+            <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="complete">完成加工</a>
+        {{# } }}
+        {{# if(d.status === 'QUALITY_CHECK'){ }}
+            <a class="layui-btn layui-btn-xs" lay-event="quality" style="background-color:#5FB878;">质检</a>
+        {{# } }}
+        {{# if(d.status === 'COMPLETED' && d.qualityCheckResult === 'PASS'){ }}
+            <a class="layui-btn layui-btn-xs" lay-event="deliver" style="background-color:#1E9FFF;">交付</a>
+        {{# } }}
+    </div>
+</script>
+
+    <!-- 状态模板 -->
+    <script type="text/html" id="statusTpl">
+    {{# var statusMap = {
+        'PENDING': '<span class="layui-badge layui-bg-gray">待加工</span>',
+        'PROCESSING': '<span class="layui-badge layui-bg-blue">加工中</span>',
+        'QUALITY_CHECK': '<span class="layui-badge layui-bg-orange">待质检</span>',
+        'COMPLETED': '<span class="layui-badge layui-bg-green">已完成</span>',
+        'DELIVERED': '<span class="layui-badge">已交付</span>'
+    }; }}
+    {{# return statusMap[d.status] || d.status; }}
+</script>
+
+    <!-- 质检结果模板 -->
+    <script type="text/html" id="qualityTpl">
+    {{# if(d.qualityCheckResult === 'PASS'){ }}
+        <span class="layui-badge layui-bg-green">合格</span>
+    {{# } else if(d.qualityCheckResult === 'FAIL'){ }}
+        <span class="layui-badge layui-bg-red">不合格</span>
+    {{# } else { }}
+        <span class="layui-badge layui-bg-gray">待检</span>
+    {{# } }}
+</script>
+
+    <script src="/vision/static/layui/layui.js"></script>
+    <script th:inline="none">
+        /*<![CDATA[*/
+        layui.use(['table', 'form', 'layer', 'jquery'], function () {
+            var table = layui.table;
+            var form = layui.form;
+            var layer = layui.layer;
+            var $ = layui.$;
+
+            console.log('加工追溯页面加载完成');
+            form.render('select');
+
+            var tableIns = table.render({
+                elem: '#processingTable',
+                url: '/vision/api/processing/page',
+                page: true,
+                limit: 15,
+                cols: [[
+                    { type: 'numbers', title: '序号', width: 60 },
+                    { field: 'orderNo', title: '加工单号', width: 150 },
+                    { field: 'patientName', title: '患者', width: 100 },
+                    { field: 'prescriptionNo', title: '关联处方', width: 150 },
+                    { field: 'frameBrand', title: '镜架品牌', width: 100 },
+                    { field: 'lensType', title: '镜片类型', width: 100 },
+                    { field: 'processorName', title: '加工师', width: 100 },
+                    { field: 'status', title: '状态', width: 90, templet: '#statusTpl' },
+                    { field: 'qualityCheckResult', title: '质检结果', width: 90, templet: '#qualityTpl' },
+                    {
+                        field: 'createTime', title: '创建时间', width: 160, templet: function (d) {
+                            return d.createTime ? d.createTime.substring(0, 16) : '-';
+                        }
+                    },
+                    { title: '操作', toolbar: '#toolbar', width: 220, fixed: 'right' }
+                ]],
+                parseData: function (res) {
+                    return { code: res.code, msg: res.msg, count: res.count, data: res.data };
+                },
+                done: function (res) {
+                    var pending = 0;
+                    if (res.data) {
+                        for (var i = 0; i < res.data.length; i++) {
+                            var s = res.data[i].status;
+                            if (s === 'PENDING' || s === 'PROCESSING' || s === 'QUALITY_CHECK') { pending++; }
+                        }
+                    }
+                    $('#pendingCount').text(pending);
+                }
+            });
+
+            $('#searchBtn').on('click', function () {
+                tableIns.reload({
+                    where: { keyword: $('#keyword').val(), status: $('#statusSelect').val() },
+                    page: { curr: 1 }
+                });
+            });
+
+            $('#resetBtn').on('click', function () {
+                $('#keyword').val('');
+                $('#statusSelect').val('');
+                form.render('select');
+                tableIns.reload({ where: { keyword: '', status: '' }, page: { curr: 1 } });
+            });
+
+            $('#keyword').on('keypress', function (e) {
+                if (e.keyCode === 13) $('#searchBtn').click();
+            });
+
+            table.on('tool(processingTable)', function (obj) {
+                var data = obj.data;
+
+                if (obj.event === 'view') {
+                    layer.open({
+                        type: 2,
+                        title: '加工单详情 - ' + data.orderNo,
+                        content: '/vision/processing/detail?id=' + data.id,
+                        area: ['850px', '600px']
+                    });
+                } else if (obj.event === 'start') {
+                    layer.confirm('确定开始加工订单 ' + data.orderNo + ' 吗？', {
+                        icon: 3, title: '确认开始加工'
+                    }, function (index) {
+                        $.ajax({
+                            url: '/vision/api/processing/start/' + data.id,
+                            type: 'PUT',
+                            success: function (res) {
+                                if (res.code === 0) { layer.msg('加工已开始', { icon: 1 }); tableIns.reload(); }
+                                else { layer.msg(res.msg || '操作失败', { icon: 2 }); }
+                            },
+                            error: function () { layer.msg('网络错误', { icon: 2 }); }
+                        });
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'complete') {
+                    layer.confirm('确认订单 ' + data.orderNo + ' 已加工完成？', {
+                        icon: 3, title: '确认完成加工'
+                    }, function (index) {
+                        $.ajax({
+                            url: '/vision/api/processing/complete/' + data.id,
+                            type: 'PUT',
+                            success: function (res) {
+                                if (res.code === 0) { layer.msg('加工完成，请进行质检', { icon: 1 }); tableIns.reload(); }
+                                else { layer.msg(res.msg || '操作失败', { icon: 2 }); }
+                            },
+                            error: function () { layer.msg('网络错误', { icon: 2 }); }
+                        });
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'quality') {
+                    openQualityDialog(data);
+                } else if (obj.event === 'deliver') {
+                    layer.confirm('确认订单 ' + data.orderNo + ' 已交付给患者？', {
+                        icon: 3, title: '确认交付'
+                    }, function (index) {
+                        $.ajax({
+                            url: '/vision/api/processing/status/' + data.id,
+                            type: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ status: 'DELIVERED' }),
+                            success: function (res) {
+                                if (res.code === 0) { layer.msg('交付成功', { icon: 1 }); tableIns.reload(); }
+                                else { layer.msg(res.msg || '操作失败', { icon: 2 }); }
+                            },
+                            error: function () { layer.msg('网络错误', { icon: 2 }); }
+                        });
+                        layer.close(index);
+                    });
+                }
+            });
+
+            // 打开质检弹窗
+            function openQualityDialog(data) {
+                var currentResult = data.qualityCheckResult || 'PENDING';
+                var currentRemark = data.qualityCheckRemark || '';
+
+                var contentHtml = '<div class="quality-dialog">';
+
+                // 如果已质检过，显示上次结果
+                if (currentResult !== 'PENDING') {
+                    var resultColor = currentResult === 'PASS' ? '#5FB878' : '#FF5722';
+                    var resultText = currentResult === 'PASS' ? '合格' : '不合格';
+                    contentHtml += '<div class="quality-result-display" style="border-left: 4px solid ' + resultColor + ';">';
+                    contentHtml += '<strong>上次质检结果：</strong>';
+                    contentHtml += '<span style="font-size:16px; margin-left:10px; color:' + resultColor + '; font-weight:bold;">' + resultText + '</span>';
+                    if (currentRemark) {
+                        contentHtml += '<br><span style="color:#666; font-size:12px;">备注：' + currentRemark + '</span>';
+                    }
+                    contentHtml += '</div>';
+                }
+
+                // 质检选择区域
+                contentHtml += '<div style="margin-bottom:15px;"><strong>请选择质检结果：</strong></div>';
+                contentHtml += '<div class="quality-option">';
+
+                // 合格卡片
+                contentHtml += '<div class="quality-item quality-pass" onclick="selectQuality(\'PASS\')" id="qualityPass">';
+                contentHtml += '<div class="quality-label quality-label-pass">合 格</div>';
+                contentHtml += '<div class="quality-desc">镜片度数、瞳距、轴位等符合处方要求</div>';
+                contentHtml += '</div>';
+
+                // 不合格卡片
+                contentHtml += '<div class="quality-item quality-fail" onclick="selectQuality(\'FAIL\')" id="qualityFail">';
+                contentHtml += '<div class="quality-label quality-label-fail">不合格</div>';
+                contentHtml += '<div class="quality-desc">镜片存在瑕疵、度数偏差或装配问题</div>';
+                contentHtml += '</div>';
+
+                contentHtml += '</div>';
+
+                // 质检备注
+                contentHtml += '<div class="quality-remark">';
+                contentHtml += '<label style="display:block; margin-bottom:5px; font-weight:bold;">质检备注：</label>';
+                contentHtml += '<textarea id="qualityRemark" class="layui-textarea" placeholder="请输入质检备注" rows="3">' + currentRemark + '</textarea>';
+                contentHtml += '</div>';
+
+                contentHtml += '</div>';
+                contentHtml += '<input type="hidden" id="selectedQualityResult" value="' + (currentResult !== 'PENDING' ? currentResult : '') + '">';
+
+                layer.open({
+                    type: 1,
+                    title: '质量检查 - ' + data.orderNo,
+                    area: ['550px', '380px'],
+                    content: contentHtml,
+                    btn: ['确认提交', '取消'],
+                    yes: function (index, layero) {
+                        var result = $('#selectedQualityResult').val();
+                        var remark = $('#qualityRemark').val();
+
+                        if (!result) {
+                            layer.msg('请点击选择质检结果（合格或不合格）', { icon: 2 });
+                            return;
+                        }
+
+                        var loadIndex = layer.load(1);
+                        $.ajax({
+                            url: '/vision/api/processing/quality/' + data.id,
+                            type: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ result: result, remark: remark }),
+                            success: function (res) {
+                                layer.close(loadIndex);
+                                if (res.code === 0) { layer.msg('质检完成', { icon: 1 }); layer.close(index); tableIns.reload(); }
+                                else { layer.msg(res.msg || '操作失败', { icon: 2 }); }
+                            },
+                            error: function () { layer.close(loadIndex); layer.msg('网络错误', { icon: 2 }); }
+                        });
+                    },
+                    btn2: function (index) { layer.close(index); },
+                    success: function (layero, index) {
+                        if (currentResult === 'PASS') { $('#qualityPass').addClass('selected-pass'); }
+                        else if (currentResult === 'FAIL') { $('#qualityFail').addClass('selected-fail'); }
+                    }
+                });
+            }
+
+            window.selectQuality = function (result) {
+                $('#selectedQualityResult').val(result);
+                $('.quality-item').removeClass('selected-pass selected-fail');
+                if (result === 'PASS') { $('#qualityPass').addClass('selected-pass'); }
+                else { $('#qualityFail').addClass('selected-fail'); }
+            };
+
+            window.reloadProcessingTable = function () { tableIns.reload(); };
+        });
+        /*]]>*/
+    </script>
+</body>
+
+</html>

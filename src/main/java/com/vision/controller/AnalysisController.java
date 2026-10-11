@@ -2,7 +2,6 @@ package com.vision.controller;
 
 import com.vision.dto.Result;
 import com.vision.service.StatisticsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -13,10 +12,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/analysis")
 public class AnalysisController {
-    
-    @Autowired
-    private StatisticsService statisticsService;
-    
+
+    private final StatisticsService statisticsService;
+
+    public AnalysisController(StatisticsService statisticsService) {
+        this.statisticsService = statisticsService;
+    }
+
     /**
      * 获取仪表盘数据
      */
@@ -25,7 +27,7 @@ public class AnalysisController {
         Map<String, Object> data = statisticsService.getDashboardStatistics();
         return Result.success(data);
     }
-    
+
     /**
      * 获取近视趋势
      */
@@ -34,7 +36,7 @@ public class AnalysisController {
         Map<String, Object> data = statisticsService.getMyopiaTrend(period);
         return Result.success(data);
     }
-    
+
     /**
      * 获取年龄分布
      */
@@ -43,7 +45,7 @@ public class AnalysisController {
         Map<String, Object> data = statisticsService.getAgeDistribution();
         return Result.success(data);
     }
-    
+
     /**
      * 获取近视程度分布
      */

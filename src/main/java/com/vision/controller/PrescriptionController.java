@@ -4,7 +4,6 @@ import com.vision.dto.PageQuery;
 import com.vision.dto.Result;
 import com.vision.entity.Prescription;
 import com.vision.service.PrescriptionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
@@ -18,8 +17,11 @@ import java.util.Map;
 @RequestMapping("/api/prescription")
 public class PrescriptionController {
 
-    @Autowired
-    private PrescriptionService prescriptionService;
+    private final PrescriptionService prescriptionService;
+
+    public PrescriptionController(PrescriptionService prescriptionService) {
+        this.prescriptionService = prescriptionService;
+    }
 
     /**
      * 分页查询处方

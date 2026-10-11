@@ -4,7 +4,6 @@ import com.vision.dto.PageQuery;
 import com.vision.dto.Result;
 import com.vision.entity.Patient;
 import com.vision.mapper.PatientMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,8 +14,11 @@ import java.util.List;
 @Service
 public class PatientService {
 
-    @Autowired
-    private PatientMapper patientMapper;
+    private final PatientMapper patientMapper;
+
+    public PatientService(PatientMapper patientMapper) {
+        this.patientMapper = patientMapper;
+    }
 
     /**
      * 分页查询患者

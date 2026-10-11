@@ -4,7 +4,6 @@ import com.vision.dto.PageQuery;
 import com.vision.dto.Result;
 import com.vision.entity.FollowUpPlan;
 import com.vision.service.FollowUpService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -18,8 +17,11 @@ import java.util.Map;
 @RequestMapping("/api/followup")
 public class FollowUpController {
 
-    @Autowired
-    private FollowUpService followUpService; // ← 注入 Service，不是 Mapper
+    private final FollowUpService followUpService;
+
+    public FollowUpController(FollowUpService followUpService) {
+        this.followUpService = followUpService;
+    }
 
     /**
      * 分页查询随访计划

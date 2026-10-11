@@ -5,7 +5,6 @@ import com.vision.dto.Result;
 import com.vision.dto.VisionAnalysisDTO;
 import com.vision.entity.OptometryRecord;
 import com.vision.mapper.OptometryMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +18,11 @@ import java.util.*;
 @Service
 public class OptometryService {
 
-    @Autowired
-    private OptometryMapper optometryMapper;
+    private final OptometryMapper optometryMapper;
+
+    public OptometryService(OptometryMapper optometryMapper) {
+        this.optometryMapper = optometryMapper;
+    }
 
     /**
      * 分页查询验光记录

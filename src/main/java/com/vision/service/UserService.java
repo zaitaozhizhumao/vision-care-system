@@ -4,7 +4,6 @@ import com.vision.dto.LoginDTO;
 import com.vision.dto.Result;
 import com.vision.entity.SysUser;
 import com.vision.mapper.UserMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,10 +14,13 @@ import java.util.*;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    public UserService(UserMapper userMapper) {
+        this.userMapper = userMapper;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
     /**
      * 用户登录

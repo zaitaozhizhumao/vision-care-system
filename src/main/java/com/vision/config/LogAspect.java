@@ -3,7 +3,6 @@ package com.vision.config;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -17,8 +16,11 @@ import java.util.Map;
 @Component
 public class LogAspect {
 
-    @Autowired
-    private com.vision.mapper.SysLogMapper sysLogMapper;
+    private final com.vision.mapper.SysLogMapper sysLogMapper;
+
+    public LogAspect(com.vision.mapper.SysLogMapper sysLogMapper) {
+        this.sysLogMapper = sysLogMapper;
+    }
 
     @Around("execution(* com.vision.controller.*.*(..)) && !execution(* com.vision.controller.PageController.*(..))")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {

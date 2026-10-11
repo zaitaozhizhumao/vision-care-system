@@ -8,7 +8,6 @@ import com.vision.entity.Prescription;
 import com.vision.mapper.FollowUpMapper;
 import com.vision.mapper.PatientMapper;
 import com.vision.mapper.PrescriptionMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,14 +18,17 @@ import java.util.List;
 @Service
 public class FollowUpService {
 
-    @Autowired
-    private FollowUpMapper followUpMapper;
+    private final FollowUpMapper followUpMapper;
+    private final PrescriptionMapper prescriptionMapper;
+    private final PatientMapper patientMapper;
 
-    @Autowired
-    private PrescriptionMapper prescriptionMapper;
-
-    @Autowired
-    private PatientMapper patientMapper;
+    public FollowUpService(FollowUpMapper followUpMapper,
+            PrescriptionMapper prescriptionMapper,
+            PatientMapper patientMapper) {
+        this.followUpMapper = followUpMapper;
+        this.prescriptionMapper = prescriptionMapper;
+        this.patientMapper = patientMapper;
+    }
 
     /**
      * 分页查询随访计划

@@ -6,7 +6,6 @@ import com.vision.entity.OptometryRecord;
 import com.vision.entity.Prescription;
 import com.vision.mapper.OptometryMapper;
 import com.vision.mapper.PrescriptionMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +19,17 @@ import java.util.List;
 @Service
 public class PrescriptionService {
 
-    @Autowired
-    private PrescriptionMapper prescriptionMapper;
+    private final PrescriptionMapper prescriptionMapper;
+    private final OptometryMapper optometryMapper;
+    private final FollowUpService followUpService;
 
-    @Autowired
-    private OptometryMapper optometryMapper;
-
-    @Autowired
-    private FollowUpService followUpService;
+    public PrescriptionService(PrescriptionMapper prescriptionMapper,
+            OptometryMapper optometryMapper,
+            FollowUpService followUpService) {
+        this.prescriptionMapper = prescriptionMapper;
+        this.optometryMapper = optometryMapper;
+        this.followUpService = followUpService;
+    }
 
     /**
      * 分页查询处方

@@ -6,7 +6,6 @@ import com.vision.entity.Prescription;
 import com.vision.entity.ProcessingOrder;
 import com.vision.mapper.PrescriptionMapper;
 import com.vision.mapper.ProcessingMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +16,13 @@ import java.util.List;
 @Service
 public class ProcessingService {
 
-    @Autowired
-    private ProcessingMapper processingMapper;
+    private final ProcessingMapper processingMapper;
+    private final PrescriptionMapper prescriptionMapper;
 
-    @Autowired
-    private PrescriptionMapper prescriptionMapper;
+    public ProcessingService(ProcessingMapper processingMapper, PrescriptionMapper prescriptionMapper) {
+        this.processingMapper = processingMapper;
+        this.prescriptionMapper = prescriptionMapper;
+    }
 
     /**
      * 分页查询加工单

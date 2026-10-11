@@ -4,15 +4,17 @@ import com.vision.dto.PageQuery;
 import com.vision.dto.Result;
 import com.vision.entity.Patient;
 import com.vision.service.PatientService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/patient")
 public class PatientController {
 
-    @Autowired
-    private PatientService patientService;
+    private final PatientService patientService;
+
+    public PatientController(PatientService patientService) {
+        this.patientService = patientService;
+    }
 
     /**
      * 分页查询患者

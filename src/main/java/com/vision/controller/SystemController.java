@@ -2,7 +2,6 @@ package com.vision.controller;
 
 import com.vision.dto.Result;
 import com.vision.mapper.SysLogMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,8 +11,11 @@ import java.util.Map;
 @RequestMapping("/api/system")
 public class SystemController {
 
-    @Autowired
-    private SysLogMapper sysLogMapper;
+    private final SysLogMapper sysLogMapper;
+
+    public SystemController(SysLogMapper sysLogMapper) {
+        this.sysLogMapper = sysLogMapper;
+    }
 
     /**
      * 获取操作日志列表

@@ -4,7 +4,6 @@ import com.vision.dto.PageQuery;
 import com.vision.dto.Result;
 import com.vision.entity.ProcessingOrder;
 import com.vision.service.ProcessingService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
@@ -14,8 +13,11 @@ import java.util.Map;
 @RequestMapping("/api/processing")
 public class ProcessingController {
 
-    @Autowired
-    private ProcessingService processingService;
+    private final ProcessingService processingService;
+
+    public ProcessingController(ProcessingService processingService) {
+        this.processingService = processingService;
+    }
 
     /**
      * 分页查询加工单

@@ -4,7 +4,6 @@ import com.vision.dto.PageQuery;
 import com.vision.dto.Result;
 import com.vision.entity.OptometryRecord;
 import com.vision.service.OptometryService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,8 +18,11 @@ import java.util.Map;
 @RequestMapping("/api/optometry")
 public class OptometryController {
 
-    @Autowired
-    private OptometryService optometryService;
+    private final OptometryService optometryService;
+
+    public OptometryController(OptometryService optometryService) {
+        this.optometryService = optometryService;
+    }
 
     /**
      * 分页查询验光记录

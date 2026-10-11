@@ -4,7 +4,6 @@ import com.vision.dto.LoginDTO;
 import com.vision.dto.Result;
 import com.vision.entity.SysUser;
 import com.vision.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
@@ -15,8 +14,11 @@ import java.util.Map;
 @RequestMapping("/api/user")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     /**
      * 用户登录

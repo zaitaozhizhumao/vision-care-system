@@ -17,3 +17,40 @@
 2026-10-11 20:41:41 [http-nio-8080-exec-2] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
 2026-10-11 20:41:43 [http-nio-8080-exec-9] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
 2026-10-11 20:41:43 [http-nio-8080-exec-9] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-10-11 21:55:21 [restartedMain] INFO  com.vision.VisionApplication - Starting VisionApplication using Java 25.0.2 with PID 48576 (D:\实验\选题\vision-care-system\target\classes started by 57761 in D:\实验\选题\vision-care-system)
+2026-10-11 21:55:21 [restartedMain] DEBUG com.vision.VisionApplication - Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-10-11 21:55:21 [restartedMain] INFO  com.vision.VisionApplication - No active profile set, falling back to 1 default profile: "default"
+2026-10-11 21:55:21 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-10-11 21:55:21 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-10-11 21:55:22 [restartedMain] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2026-10-11 21:55:22 [restartedMain] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-10-11 21:55:22 [restartedMain] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-10-11 21:55:23 [restartedMain] INFO  o.a.c.c.C.[.[localhost].[/vision] - Initializing Spring embedded WebApplicationContext
+2026-10-11 21:55:23 [restartedMain] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1223 ms
+2026-10-11 21:55:23 [restartedMain] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2026-10-11 21:55:24 [restartedMain] INFO  o.s.b.d.a.OptionalLiveReloadServer - LiveReload server is running on port 35729
+2026-10-11 21:55:24 [restartedMain] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/vision'
+2026-10-11 21:55:24 [restartedMain] INFO  com.vision.VisionApplication - Started VisionApplication in 2.779 seconds (process running for 3.157)
+2026-10-11 21:55:36 [http-nio-8080-exec-2] INFO  o.a.c.c.C.[.[localhost].[/vision] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-11 21:55:36 [http-nio-8080-exec-2] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-10-11 21:55:36 [http-nio-8080-exec-2] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2026-10-11 21:55:37 [http-nio-8080-exec-4] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-10-11 21:55:37 [http-nio-8080-exec-4] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@3c059d90
+2026-10-11 21:55:37 [http-nio-8080-exec-4] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-10-11 21:57:03 [restartedMain] INFO  com.vision.VisionApplication - Starting VisionApplication using Java 25.0.2 with PID 12204 (D:\实验\选题\vision-care-system\target\classes started by 57761 in D:\实验\选题\vision-care-system)
+2026-10-11 21:57:03 [restartedMain] DEBUG com.vision.VisionApplication - Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-10-11 21:57:03 [restartedMain] INFO  com.vision.VisionApplication - No active profile set, falling back to 1 default profile: "default"
+2026-10-11 21:57:03 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-10-11 21:57:03 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-10-11 21:57:05 [restartedMain] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2026-10-11 21:57:05 [restartedMain] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-10-11 21:57:05 [restartedMain] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-10-11 21:57:05 [restartedMain] INFO  o.a.c.c.C.[.[localhost].[/vision] - Initializing Spring embedded WebApplicationContext
+2026-10-11 21:57:05 [restartedMain] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1216 ms
+2026-10-11 21:57:05 [restartedMain] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2026-10-11 21:57:06 [restartedMain] INFO  o.s.b.d.a.OptionalLiveReloadServer - LiveReload server is running on port 35729
+2026-10-11 21:57:06 [restartedMain] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/vision'
+2026-10-11 21:57:06 [restartedMain] INFO  com.vision.VisionApplication - Started VisionApplication in 2.658 seconds (process running for 3.025)
+2026-10-11 21:57:08 [http-nio-8080-exec-2] INFO  o.a.c.c.C.[.[localhost].[/vision] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-11 21:57:08 [http-nio-8080-exec-2] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-10-11 21:57:08 [http-nio-8080-exec-2] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
